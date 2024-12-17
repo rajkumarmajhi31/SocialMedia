@@ -30,7 +30,11 @@ app.use(morgan("common"));
 app.use(bodyParser.json({ limit: "30mb", extended: true }));
 app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
 app.use(cors());
-app.use("/assets", express.static(path.join(__dirname, "public/assets")));
+
+/* API Routes */
+app.use("/auth", authRoutes);
+app.use("/users", userRoutes);
+app.use("/posts", postRoutes);
 
 /* FILE STORAGE */
 const storage = multer.diskStorage({
@@ -43,21 +47,17 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-/* ROUTES WITH FILES */
+// Routes with file handling
 app.post("/auth/register", upload.single("picture"), register);
 app.post("/posts", verifyToken, upload.single("picture"), createPost);
 
-/* ROUTES */
-app.use("/auth", authRoutes);
-app.use("/users", userRoutes);
-app.use("/posts", postRoutes);
-
 /* DEPLOYMENT CONFIGURATION FOR REACT FRONTEND */
-// Serve static files from the React build folder
+// Serve static files from the React build folder (ensure path is correct)
 const clientBuildPath = path.join(__dirname, "../client/build");
 app.use(express.static(clientBuildPath));
 
 // Catch-all route to serve React app for client-side routing
+// This should be the last middleware
 app.get("*", (req, res) => {
   res.sendFile(path.join(clientBuildPath, "index.html"));
 });
