@@ -37,6 +37,21 @@ const MyPostWidget = ({ picturePath }) => {
   const mediumMain = palette.neutral.mediumMain;
   const medium = palette.neutral.medium;
 
+  const refreshPosts = async () => {
+  const response = await fetch("https://socialmediabackend1.onrender.com/posts", {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  const data = await response.json();
+
+  // Sort newest → oldest
+  const sortedData = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  dispatch(setPosts({ posts: sortedData }));
+};
+
+
   const handlePost = async () => {
     const formData = new FormData();
     formData.append("userId", _id);
@@ -51,8 +66,12 @@ const MyPostWidget = ({ picturePath }) => {
       headers: { Authorization: `Bearer ${token}` },
       body: formData,
     });
-    const posts = await response.json();
-    dispatch(setPosts({ posts }));
+
+      await response.json();  // we don't need the full list
+
+  // 🔥 Auto refresh feed (fetch new sorted posts)
+      await refreshPosts();
+
     setImage(null);
     setPost("");
   };
